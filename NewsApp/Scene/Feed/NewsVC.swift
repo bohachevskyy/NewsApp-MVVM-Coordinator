@@ -8,75 +8,88 @@
 
 import UIKit
 
-class NewsVC: UIViewController, UITableViewDataSource, UITableViewDelegate, UITableViewDataSourcePrefetching, StoryboardLoadable {
+class NewsVC: UIViewController, StoryboardLoadable {
     static private let nibID = "NewsCell"
     static private let constPrefetch = 5
     static private let defaultCellHeight: CGFloat = 150.0
     
-    private var pageCount = 1
-    private var isRequestSend = false
-    private var isEndOfTheJSON = false
+    typealias ViewModelType = NewsViewModel
+    var viewModel: NewsViewModel!
+    
     private var refreshControl = UIRefreshControl()
-
-    private var newsDataModels = [NewsModel]()
-    var newsService: NewsService?
-    var onSelection: ((NewsModel) -> Void)?
     
     @IBOutlet private weak var tableView: UITableView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "News"
-        
-        // table view setup
+        setupTableView()
+        setupRefreshControl()
+        bindViewModel()
+        handleStateUpdate(state: viewModel.state)
+    }
+    
+    @objc func refresh() {
+        viewModel.refresh()
+    }
+    
+}
+
+// MARK: - Setup
+private extension NewsVC {
+    func setupTableView() {
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.prefetchDataSource = self
         tableView.register(UINib(nibName: NewsVC.nibID, bundle: nil), forCellReuseIdentifier: NewsCell.newsCellID)
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = NewsVC.defaultCellHeight
         tableView.tableFooterView = UIView()
-        
-        // refresh control setup
+    }
+    
+    func setupRefreshControl() {
         refreshControl.addTarget(self, action: #selector(refresh), for: UIControl.Event.valueChanged)
         tableView.addSubview(refreshControl)
         tableView.tableFooterView?.addSubview(refreshControl)
+    }
+    
+    func bindViewModel() {
+        viewModel.onStateChange = { [weak self] (state) in
+            self?.handleStateUpdate(state: state)
+        }
         
-        // request inital data
-        getNewsData()
-    }
-    
-    @objc func refresh() {
-        newsDataModels = []
-        pageCount = 0
-        tableView.reloadData()
-        getNewsData()
-    }
-    
-    func getNewsData() {
-        if !isEndOfTheJSON && !isRequestSend {
-            pageCount += 1
-            isRequestSend = true
-            newsService?.getNews(page: pageCount) { [weak self] (result) in
-                switch result {
-                case .success(let response):
-                    self?.newsDataModels.append(contentsOf: response.articles)
-                    self?.isRequestSend = false
-                    self?.isEndOfTheJSON = response.totalResults == (self?.newsDataModels.count ?? 0)
-                    self?.tableView.reloadData()
-                    self?.refreshControl.endRefreshing()
-                case .failure(_):
-                    // error handling
-                    break
-                }
-            }
+        viewModel.onError = { [weak self] (error) in
+            self?.showError(error)
         }
     }
-    
-    // MARK: - table view
-    
+}
+
+// MARK: - Update
+private extension NewsVC {
+    func handleStateUpdate(state: ViewModelType.State) {
+        switch state {
+        case .empty:
+            tableView.isHidden = true
+        case .loading:
+            tableView.isHidden = false
+        case .withData(let recepies):
+            tableView.isHidden = recepies.isEmpty
+        }
+        
+        tableView.reloadData()
+    }
+}
+
+// MARK: - UITableViewDataSource && UITableViewDataDelegate
+extension NewsVC: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return newsDataModels.count
+        switch viewModel.state {
+        case .withData(let news):
+            return news.count
+        case .empty:
+            return 0
+        case .loading:
+            return 0
+        }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -84,21 +97,25 @@ class NewsVC: UIViewController, UITableViewDataSource, UITableViewDelegate, UITa
             fatalError("Can’t deque the cell")
         }
         
-        cell.present(newsDataModels[indexPath.row])
+        switch viewModel.state {
+        case .withData(let news):
+            cell.present(news[indexPath.row])
+        case .empty, .loading:
+            break
+        }
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        onSelection?(newsDataModels[indexPath.row])
+        viewModel.didSelectRow(at: indexPath)
     }
-    
-    func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
-        for indexPath in indexPaths {
-            if indexPath.row >= newsDataModels.count - NewsVC.constPrefetch && !isRequestSend {
-                getNewsData()
-                break
-            }
+}
+
+// MARK: - UIScrollViewDelegate
+extension NewsVC: UIScrollViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if scrollView.hasScrolledToBottom(padding: 150) {
+            viewModel.didScrollToBottom()
         }
     }
-    
 }

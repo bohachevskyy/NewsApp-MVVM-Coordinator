@@ -9,6 +9,8 @@
 import UIKit
 
 protocol StoryboardLoadable {
+    associatedtype ViewModelType
+    var viewModel: ViewModelType! { get set }
     static var identifier: String { get }
     static var storyboardName: String { get }
     static func loadFromStoryboard() -> Self

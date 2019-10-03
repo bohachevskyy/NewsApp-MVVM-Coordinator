@@ -9,6 +9,9 @@
 import UIKit
 
 class NewsDetailVC: UIViewController, StoryboardLoadable {
+    typealias ViewModelType = NewsModel
+    var viewModel: NewsModel!
+    
     @IBOutlet private weak var imageDetail: UIImageView!
     @IBOutlet private weak var titleNews: UILabel!
     @IBOutlet private weak var descNews: UILabel!

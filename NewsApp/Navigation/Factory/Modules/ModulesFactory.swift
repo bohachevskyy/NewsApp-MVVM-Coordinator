@@ -15,7 +15,7 @@ final class ModulesFactory { }
 extension ModulesFactory: MainModulesFactory {
     func makeNewsFeedView() -> NewsVC {
         let vc = NewsVC.loadFromStoryboard()
-        vc.newsService = NewsServiceImpl()
+        vc.viewModel = NewsViewModel(newsService: NewsServiceImpl())
         return vc
     }
     

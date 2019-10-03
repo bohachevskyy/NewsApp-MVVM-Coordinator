@@ -9,5 +9,5 @@
 import Foundation
 
 protocol NewsService {
-    func getNews(page: Int, completion: @escaping (Result<NewsResponse, Error>) -> ())
+    func getNews(page: Int, completion: @escaping (Result<[NewsModel], Error>) -> ())
 }

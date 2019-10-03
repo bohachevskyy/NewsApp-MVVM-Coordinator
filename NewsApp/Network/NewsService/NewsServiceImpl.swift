@@ -9,7 +9,12 @@
 import Foundation
 
 final class NewsServiceImpl: NewsService {
-    func getNews(page: Int, completion: @escaping (Result<NewsResponse, Error>) -> ()) {
-        HTTPClient.request(requestConvertible: NewsAPIRouter.getNews(page: page), completion: completion)
+    func getNews(page: Int, completion: @escaping (Result<[NewsModel], Error>) -> ()) {
+        let mappedCompletion: (Result<NewsResponse, Error>) -> () = { (result) in
+            let mappedResult = result.map({ $0.articles })
+            completion(mappedResult)
+        }
+        
+        HTTPClient.request(requestConvertible: NewsAPIRouter.getNews(page: page), completion: mappedCompletion)
     }
 }

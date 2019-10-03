@@ -41,7 +41,7 @@ extension AppCoordinator {
         let view = modulesFactory.makeNewsFeedView()
         router.setRootModule(view)
         
-        view.onSelection = { [weak self] (news) in
+        view.viewModel.onSelection = { [weak self] (news) in
             self?.showDetailView(news: news)
         }
     }
