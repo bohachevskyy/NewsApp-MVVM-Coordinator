@@ -21,7 +21,7 @@ extension ModulesFactory: MainModulesFactory {
     
     func makeNewsDetailView(news: NewsModel) -> NewsDetailVC {
         let vc = NewsDetailVC.loadFromStoryboard()
-        vc.newsModel = news
+        vc.viewModel = NewsDetailViewModel(newsModel: news)
         return vc
     }
 }

@@ -9,47 +9,33 @@
 import UIKit
 
 class NewsDetailVC: UIViewController, StoryboardLoadable {
-    typealias ViewModelType = NewsModel
-    var viewModel: NewsModel!
+    typealias ViewModelType = NewsDetailViewModel
+    var viewModel: NewsDetailViewModel!
     
     @IBOutlet private weak var imageDetail: UIImageView!
     @IBOutlet private weak var titleNews: UILabel!
     @IBOutlet private weak var descNews: UILabel!
-    @IBOutlet private weak var dataNews: UILabel!
-    
-    var newsModel: NewsModel?
-    var onOpenExternalResource: ((URL) -> Void)?
-    private let dateFormatter: DateFormatter = {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateStyle = .medium
-        dateFormatter.timeStyle = .short
-        return dateFormatter
-    }()
+    @IBOutlet private weak var dateNews: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = newsModel?.title ?? "Detail News"
-        titleNews.text = newsModel?.title
-        descNews.text = newsModel?.desc
+        title = viewModel.title
+        titleNews.text = viewModel.title
+        descNews.text = viewModel.newsDescription
+        dateNews.text = viewModel.newsDete
         
-        if let imageUrl = newsModel?.imageUrl {
-            ImageDownloadManager.downloadImage(url: imageUrl) { [weak self] (result) in
-                switch result {
-                case .success(let image):
-                    self?.imageDetail.image = image
-                case .failure(_):
-                    break
-                }
+        ImageDownloadManager.downloadImage(url: viewModel.imageURL) { [weak self] (result) in
+            switch result {
+            case .success(let image):
+                self?.imageDetail.image = image
+            case .failure(_):
+                break
             }
         }
-        
-        if let date = newsModel?.publishedAt { dataNews.text = dateFormatter.string(from: date) }
     }
     
     @IBAction private func openDidTap(_ sender: Any) {
-        if let contentUrl = newsModel?.contentUrl {
-            onOpenExternalResource?(contentUrl)
-        }
+        viewModel.didTapOriginal()
     }
     
 }

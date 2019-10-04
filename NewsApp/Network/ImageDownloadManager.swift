@@ -11,6 +11,7 @@ import UIKit
 final class ImageDownloadManager {
     static private var imageCache: NSCache<NSString, UIImage> = NSCache()
     
+    @discardableResult
     static func downloadImage(url urlString: String, completion: @escaping (Result<UIImage, Error>) -> ()) -> URLSessionDataTask? {
         guard let url = URL(string: urlString) else {
             return nil

@@ -50,7 +50,7 @@ extension AppCoordinator {
         let view = modulesFactory.makeNewsDetailView(news: news)
         router.push(view)
         
-        view.onOpenExternalResource = { [weak self] (url) in
+        view.viewModel.onOpenExternalResource = { [weak self] (url) in
             self?.presentSafariView(url: url)
         }
     }
