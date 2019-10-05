@@ -23,7 +23,7 @@ enum NewsAPIRouter: NetworkRoutable {
     var httpMethod: String { return "GET" }
     
     var authenticationQueryParameterers: Parameters? {
-        return ["apiKey": "e2c24d143b504040bf1b6c959592d16e"]
+        return ["apiKey": "API-KEY"]
     }
     
     var queryParameters: Parameters? {
